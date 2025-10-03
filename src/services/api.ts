@@ -1,5 +1,10 @@
 // API endpoints
-const API_BASE_URL = 'http://localhost:3000/api';
+// Prefer Vite env, then runtime window override, then production backend, then localhost.
+const API_BASE_URL =
+  (import.meta as any).env?.VITE_API_BASE_URL ||
+  (typeof window !== 'undefined' && (window as any).__API_BASE_URL__) ||
+  'https://trip-go-adv-server.vercel.app/api' ||
+  'http://localhost:3000/api';
 // Request configuration
 interface RequestConfig {
   method: 'GET' | 'POST' | 'PUT' | 'DELETE';

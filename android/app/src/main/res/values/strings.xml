@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">TripMetricsPro</string>
+    <string name="title_activity_main">TripMetricsPro</string>
+    <string name="package_name">com.tripmetrics.app</string>
+    <string name="custom_url_scheme">com.tripmetrics.app</string>
+</resources>

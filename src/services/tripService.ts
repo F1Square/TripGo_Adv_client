@@ -110,6 +110,11 @@ class TripService {
   async updateGPSPoints(tripId: string, points: TripPoint[]) {
     return await this.updateTrip(tripId, { route: points });
   }
+
+  // Add route points in bulk to the active trip
+  async addRoutePointsBulk(points: TripPoint[]) {
+    return await apiService.post<{ data: Trip; added: number }>(`/trips/active/route/bulk`, { points });
+  }
 }
 
 // Create and export a default instance

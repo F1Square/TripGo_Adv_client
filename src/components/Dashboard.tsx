@@ -21,6 +21,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { useTrip } from '@/hooks/useTrip';
 import { useToast } from '@/hooks/use-toast';
+import { roundDistanceKm } from '@/lib/utils';
 
 // Lazy loaded heavy components
 const NewTripForm = React.lazy(() => import('./NewTripForm'));
@@ -173,7 +174,7 @@ const Dashboard = () => {
                 {isActive && (
                   <div className="text-right">
                     <p className="text-lg font-semibold text-foreground">
-                      {currentTrip?.distance.toFixed(1) || '0.0'} km
+                      {roundDistanceKm(currentTrip?.distance || 0)} km
                     </p>
                     <p className="text-xs text-muted-foreground">distance</p>
                   </div>
@@ -199,7 +200,7 @@ const Dashboard = () => {
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">Distance</span>
                   <span className="font-medium">
-                    {tripHistory.reduce((sum, trip) => sum + trip.distance, 0).toFixed(1)} km
+                    {roundDistanceKm(tripHistory.reduce((sum, trip) => sum + trip.distance, 0))} km
                   </span>
                 </div>
               </div>

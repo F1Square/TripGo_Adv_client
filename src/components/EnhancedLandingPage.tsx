@@ -361,7 +361,12 @@ const EnhancedLandingPage: React.FC<EnhancedLandingPageProps> = ({ onGetStarted 
 
           {/* Twitter Contact */}
           <div className="pt-12 border-t border-border/50">
-            <div className="glass-card p-8 rounded-3xl inline-block">
+            <a
+              href="https://x.com/AbhiBhingradiya"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="glass-card p-8 rounded-3xl inline-block focus:outline-none focus:ring-2 focus:ring-primary"
+            >
               <div className="flex items-center justify-center space-x-4">
                 <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary-light rounded-2xl flex items-center justify-center">
                   <Twitter className="w-6 h-6 text-primary-foreground" />
@@ -373,7 +378,7 @@ const EnhancedLandingPage: React.FC<EnhancedLandingPageProps> = ({ onGetStarted 
                   </div>
                 </div>
               </div>
-            </div>
+            </a>
           </div>
         </div>
       </div>

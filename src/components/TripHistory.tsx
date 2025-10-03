@@ -14,6 +14,7 @@ import {
   FileText
 } from 'lucide-react';
 import { useTrip } from '@/hooks/useTrip';
+import { roundDistanceKm } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
@@ -165,7 +166,7 @@ const TripHistory = React.memo(() => {
                       <div className="flex items-center space-x-2">
                         <TrendingUp className="w-4 h-4 text-primary" />
                         <span className="text-muted-foreground">Distance:</span>
-                        <span className="font-medium">{trip.distance.toFixed(1)} km</span>
+                        <span className="font-medium">{roundDistanceKm(trip.distance)} km</span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Clock className="w-4 h-4 text-primary" />
@@ -257,7 +258,7 @@ const TripHistory = React.memo(() => {
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Distance:</span>
-                          <span className="font-medium">{selectedTrip.distance.toFixed(2)} km</span>
+                          <span className="font-medium">{roundDistanceKm(selectedTrip.distance)} km</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Duration:</span>

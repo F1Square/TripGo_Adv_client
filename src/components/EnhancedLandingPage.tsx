@@ -85,10 +85,10 @@ const EnhancedLandingPage: React.FC<EnhancedLandingPageProps> = ({ onGetStarted 
           {/* Hero Content */}
           <div className={`space-y-8 transform transition-all duration-1000 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
             {/* Premium Badge */}
-            <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-primary/10 to-success/10 glass-card px-4 py-2 rounded-full">
+            {/* <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-primary/10 to-success/10 glass-card px-4 py-2 rounded-full">
               <Award className="w-4 h-4 text-primary" />
               <span className="text-sm font-medium text-foreground">Enterprise Grade Solution</span>
-            </div>
+            </div> */}
             
             {/* Hero Heading */}
             <div className="space-y-6">
@@ -374,7 +374,7 @@ const EnhancedLandingPage: React.FC<EnhancedLandingPageProps> = ({ onGetStarted 
                 <div className="text-left">
                   <div className="font-semibold text-foreground">Need Help? We're Excited to Assist! 🎉</div>
                   <div className="text-sm text-muted-foreground">
-                    If you have any doubts and issues then ping on Twitter →
+                    If you have any doubts and issues then ping on X →
                   </div>
                 </div>
               </div>

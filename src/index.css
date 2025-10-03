@@ -1,0 +1,280 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Business Trip Tracker Design System
+Professional mobile-first PWA with glassmorphism and gradients
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Base colors */
+    --background: 210 25% 98%;
+    --foreground: 220 15% 20%;
+
+    /* Card system with glassmorphism */
+    --card: 0 0% 100%;
+    --card-foreground: 220 15% 20%;
+    --card-glass: 0 0% 100% / 0.9;
+    --card-border: 210 20% 90%;
+
+    /* Popover system */
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 15% 20%;
+
+    /* Primary brand colors - Professional blue */
+    --primary: 230 65% 55%;
+    --primary-foreground: 0 0% 100%;
+    --primary-light: 230 65% 65%;
+    --primary-dark: 230 65% 45%;
+
+    /* Secondary colors */
+    --secondary: 210 20% 95%;
+    --secondary-foreground: 220 15% 30%;
+
+    /* Muted colors */
+    --muted: 210 15% 96%;
+    --muted-foreground: 220 10% 45%;
+
+    /* Accent colors */
+    --accent: 210 20% 95%;
+    --accent-foreground: 220 15% 30%;
+
+    /* Success state */
+    --success: 145 65% 45%;
+    --success-foreground: 0 0% 100%;
+    --success-light: 145 65% 55%;
+
+    /* Destructive state */
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Border and inputs */
+    --border: 210 20% 88%;
+    --input: 210 20% 94%;
+    --ring: 230 65% 55%;
+
+    /* Gradients for premium feel */
+    --gradient-primary: linear-gradient(135deg, hsl(230 65% 55%), hsl(250 65% 65%));
+    --gradient-success: linear-gradient(135deg, hsl(145 65% 45%), hsl(165 65% 55%));
+    --gradient-danger: linear-gradient(135deg, hsl(0 75% 55%), hsl(15 75% 65%));
+    --gradient-glass: linear-gradient(135deg, hsl(0 0% 100% / 0.2), hsl(0 0% 100% / 0.05));
+    --gradient-background: linear-gradient(135deg, hsl(210 25% 98%), hsl(220 25% 96%));
+
+    /* Shadows for depth */
+    --shadow-sm: 0 2px 8px hsl(220 15% 20% / 0.06);
+    --shadow-md: 0 4px 16px hsl(220 15% 20% / 0.1);
+    --shadow-lg: 0 8px 32px hsl(220 15% 20% / 0.15);
+    --shadow-glass: 0 8px 32px hsl(220 15% 20% / 0.1);
+
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Background animation utilities */
+    --bg-300\%: 300%;
+
+    --radius: 1rem;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    /* Base colors */
+    --background: 220 20% 8%;
+    --foreground: 210 20% 90%;
+
+    /* Card system with glassmorphism */
+    --card: 220 20% 12%;
+    --card-foreground: 210 20% 90%;
+    --card-glass: 220 20% 15% / 0.9;
+    --card-border: 220 20% 20%;
+
+    /* Popover system */
+    --popover: 220 20% 12%;
+    --popover-foreground: 210 20% 90%;
+
+    /* Primary brand colors */
+    --primary: 230 65% 60%;
+    --primary-foreground: 220 20% 8%;
+    --primary-light: 230 65% 70%;
+    --primary-dark: 230 65% 50%;
+
+    /* Secondary colors */
+    --secondary: 220 20% 16%;
+    --secondary-foreground: 210 20% 85%;
+
+    /* Muted colors */
+    --muted: 220 20% 16%;
+    --muted-foreground: 220 10% 60%;
+
+    /* Accent colors */
+    --accent: 220 20% 16%;
+    --accent-foreground: 210 20% 85%;
+
+    /* Success state */
+    --success: 145 65% 50%;
+    --success-foreground: 220 20% 8%;
+    --success-light: 145 65% 60%;
+
+    /* Destructive state */
+    --destructive: 0 75% 60%;
+    --destructive-foreground: 220 20% 8%;
+
+    /* Border and inputs */
+    --border: 220 20% 20%;
+    --input: 220 20% 16%;
+    --ring: 230 65% 60%;
+
+    /* Dark gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(230 65% 60%), hsl(250 65% 70%));
+    --gradient-success: linear-gradient(135deg, hsl(145 65% 50%), hsl(165 65% 60%));
+    --gradient-danger: linear-gradient(135deg, hsl(0 75% 60%), hsl(15 75% 70%));
+    --gradient-glass: linear-gradient(135deg, hsl(220 20% 25% / 0.3), hsl(220 20% 15% / 0.1));
+    --gradient-background: linear-gradient(135deg, hsl(220 20% 8%), hsl(230 20% 10%));
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    background: var(--gradient-background);
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  /* Glass morphism card component */
+  .glass-card {
+    background: var(--card-glass);
+    border: 1px solid var(--card-border);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: var(--shadow-glass);
+    border-radius: var(--radius);
+  }
+
+  /* Gradient button variants */
+  .btn-gradient-primary {
+    background: var(--gradient-primary);
+    border: none;
+    color: hsl(var(--primary-foreground));
+    transition: var(--transition-smooth);
+  }
+  
+  .btn-gradient-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .btn-gradient-success {
+    background: var(--gradient-success);
+    border: none;
+    color: hsl(var(--success-foreground));
+    transition: var(--transition-smooth);
+  }
+  
+  .btn-gradient-success:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .btn-gradient-danger {
+    background: var(--gradient-danger);
+    border: none;
+    color: hsl(var(--destructive-foreground));
+    transition: var(--transition-smooth);
+  }
+  
+  .btn-gradient-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* Floating animation for cards */
+  .card-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+
+  /* Pulse animation for real-time elements */
+  .pulse-success {
+    animation: pulse-success 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-success {
+    0%, 100% { 
+      box-shadow: 0 0 0 0 hsl(var(--success) / 0.7);
+    }
+    50% { 
+      box-shadow: 0 0 0 20px hsl(var(--success) / 0);
+    }
+  }
+
+  /* Loading skeleton */
+  .skeleton {
+    background: linear-gradient(90deg, 
+      hsl(var(--muted)) 25%, 
+      hsl(var(--muted-foreground) / 0.1) 50%, 
+      hsl(var(--muted)) 75%
+    );
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+  }
+
+  @keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* Gradient animation keyframes */
+  @keyframes gradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+}
+
+@layer utilities {
+  /* Animate gradient utility */
+  .animate-gradient {
+    background-size: 300%;
+    animation: gradient 6s ease infinite;
+  }
+
+  /* Additional hover utilities */
+  .hover-scale {
+    @apply transition-transform duration-200 hover:scale-105;
+  }
+}

@@ -61,6 +61,18 @@ const Dashboard = () => {
     localStorage.setItem('trip_tracker_odometer', value);
   };
 
+  // Listen for odometer updates triggered after trip completion
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail && typeof detail.value === 'number') {
+        setCurrentOdometer(detail.value.toString());
+      }
+    };
+    window.addEventListener('odometer:updated', handler as EventListener);
+    return () => window.removeEventListener('odometer:updated', handler as EventListener);
+  }, []);
+
   const handleLogout = () => {
     logout();
     toast({

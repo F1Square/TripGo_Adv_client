@@ -3,6 +3,7 @@ import { useGeolocation } from './useGeolocation';
 import { tripService, Trip, TripPoint } from '../services/tripService';
 import { preloadMapComponents } from '../utils/componentPreloader';
 import { throttle } from '../utils/performance';
+import { roundDistanceKm } from '@/lib/utils';
 
 // Import wake lock types
 /// <reference path="../types/wakelock.d.ts" />
@@ -270,9 +271,18 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
         accuracy: endPosition.accuracy,
       }];
 
+      // Use integer rounding rule for end odometer to keep UI and server consistent
+      const base = Math.floor(state.currentTrip.distance || 0);
+      const frac = (state.currentTrip.distance || 0) - base;
+      const roundedDistance = base + (frac > 0.5 ? 1 : 0);
+      const computedEndOdometer = Math.max(
+        state.currentTrip.startOdometer + roundedDistance,
+        endOdometer || 0
+      );
+
       // End trip in database
       const endResponse = await tripService.endTrip(state.currentTrip._id, {
-        endOdometer,
+        endOdometer: computedEndOdometer,
       });
 
       if (!endResponse.success || !endResponse.data) {
@@ -280,6 +290,20 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       const completedTrip = endResponse.data.data;
+
+      // Update local current odometer store and notify listeners
+      try {
+        const base = Math.floor(completedTrip.distance || 0);
+        const frac = (completedTrip.distance || 0) - base;
+        const roundedDistance = base + (frac > 0.5 ? 1 : 0);
+        const prevOdoStr = localStorage.getItem('trip_tracker_odometer');
+        const prevOdo = prevOdoStr ? Number(prevOdoStr) : completedTrip.startOdometer;
+        const newOdo = Math.max(prevOdo, completedTrip.startOdometer) + roundedDistance;
+        localStorage.setItem('trip_tracker_odometer', newOdo.toString());
+        window.dispatchEvent(new CustomEvent('odometer:updated', { detail: { value: newOdo } }));
+      } catch (e) {
+        console.warn('Failed to update local odometer after trip end:', e);
+      }
 
       // Update local state
       setState(prev => ({
@@ -331,15 +355,23 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const exportTripsToCSV = useCallback(() => {
-    const csvHeader = 'Date,Purpose,Start Odometer,End Odometer,Distance (km),Duration (hours),Average Speed (km/h),Start Location,End Location\n';
-    
+    // New schema
+    const csvHeader = 'Date Trip Start,Date Trip End,Purpose of Trip,Area From,Area To,Odometer Reading Start,Odometer Reading Finish,Kilometres Travelled,Signature of person making Entry,Date of Entry\n';
+
     const csvRows = state.tripHistory.map(trip => {
-      const date = new Date(trip.startTime || trip.createdAt).toLocaleDateString();
-      const durationHours = (trip.duration / 3600).toFixed(2);
-      const distance = trip.distance.toFixed(2);
-      const avgSpeed = trip.averageSpeed.toFixed(1);
-      
-      return `${date},"${trip.purpose}",${trip.startOdometer},${trip.endOdometer || ''},${distance},${durationHours},${avgSpeed},"${trip.startLocation || ''}","${trip.endLocation || ''}"`;
+      const startDate = new Date(trip.startTime || trip.createdAt).toLocaleDateString();
+      const endDate = startDate; // as requested, same as start date
+      const purpose = trip.purpose || '';
+      const areaFrom = trip.startLocation || '';
+      const areaTo = trip.endLocation || '';
+      const odoStart = trip.startOdometer ?? '';
+      const roundedKm = roundDistanceKm(trip.distance || 0);
+      const odoFinish = typeof trip.endOdometer === 'number' ? trip.endOdometer : (typeof odoStart === 'number' ? odoStart + roundedKm : '');
+      const kmTravelled = roundedKm;
+      const signature = '';
+      const dateOfEntry = startDate;
+
+      return `${startDate},${endDate},"${purpose}","${areaFrom}","${areaTo}",${odoStart},${odoFinish},${kmTravelled},${signature},${dateOfEntry}`;
     }).join('\n');
 
     const csvContent = csvHeader + csvRows;
@@ -348,7 +380,7 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     const link = document.createElement('a');
     link.href = url;
-    link.download = `business_trips_${new Date().toISOString().split('T')[0]}.csv`;
+    link.download = `trip_log_${new Date().toISOString().split('T')[0]}.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -369,13 +401,14 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return d >= start && d <= end;
     });
 
-    const csvHeader = 'Date,Purpose,Start Odometer,End Odometer,Distance (km),Duration (hours),Average Speed (km/h),Start Location,End Location\n';
+    const csvHeader = 'Date Trip Start,Date Trip End,Purpose of Trip,Area From,Area To,Odometer Reading Start,Odometer Reading Finish,Kilometres Travelled,Signature of person making Entry,Date of Entry\n';
     const csvRows = filtered.map(trip => {
-      const date = new Date(trip.startTime || trip.createdAt).toLocaleDateString();
-      const durationHours = (trip.duration / 3600).toFixed(2);
-      const distance = trip.distance.toFixed(2);
-      const avgSpeed = trip.averageSpeed.toFixed(1);
-      return `${date},"${trip.purpose}",${trip.startOdometer},${trip.endOdometer || ''},${distance},${durationHours},${avgSpeed},"${trip.startLocation || ''}","${trip.endLocation || ''}"`;
+      const start = new Date(trip.startTime || trip.createdAt).toLocaleDateString();
+      const endSame = start;
+      const roundedKm = roundDistanceKm(trip.distance || 0);
+      const odoStart = trip.startOdometer ?? '';
+      const odoFinish = typeof trip.endOdometer === 'number' ? trip.endOdometer : (typeof odoStart === 'number' ? odoStart + roundedKm : '');
+      return `${start},${endSame},"${trip.purpose || ''}","${trip.startLocation || ''}","${trip.endLocation || ''}",${odoStart},${odoFinish},${roundedKm},,${start}`;
     }).join('\n');
 
     const csvContent = csvHeader + csvRows;
@@ -383,7 +416,7 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `business_trips_${startDate}_to_${endDate}.csv`;
+    link.download = `trip_log_${startDate}_to_${endDate}.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

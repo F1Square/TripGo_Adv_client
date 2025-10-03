@@ -103,8 +103,11 @@ const ActiveTrip = () => {
   // current speed card removed per requirement
 
   const handleEndTrip = async () => {
-    // Auto-calculate ending odometer based on GPS distance
-    const calculatedEndOdometer = currentTrip.startOdometer + currentTrip.distance;
+    // Auto-calculate ending odometer using integer rounding rule (>0.5 up)
+    const base = Math.floor(currentTrip.distance || 0);
+    const frac = (currentTrip.distance || 0) - base;
+    const roundedDistance = base + (frac > 0.5 ? 1 : 0);
+    const calculatedEndOdometer = currentTrip.startOdometer + roundedDistance;
     
     const result = await endTrip(calculatedEndOdometer);
     
@@ -340,7 +343,7 @@ const ActiveTrip = () => {
                 <div className="space-y-2">
                   <Label>Calculated Ending Odometer</Label>
                   <p className="text-lg font-semibold text-foreground">
-                    {(currentTrip.startOdometer + currentTrip.distance).toLocaleString()} km
+                    {(currentTrip.startOdometer + Math.floor(currentTrip.distance) + ((currentTrip.distance - Math.floor(currentTrip.distance)) > 0.5 ? 1 : 0)).toLocaleString()} km
                   </p>
                 </div>
               </div>

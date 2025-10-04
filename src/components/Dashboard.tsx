@@ -22,6 +22,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useTrip } from '@/hooks/useTrip';
 import { useToast } from '@/hooks/use-toast';
 import { roundDistanceKm } from '@/lib/utils';
+import { userDataService } from '@/services/userDataService';
 
 // Lazy loaded heavy components
 const NewTripForm = React.lazy(() => import('./NewTripForm'));
@@ -55,6 +56,22 @@ const Dashboard = () => {
     // Auto-switch to history when trip becomes active, back to new-trip when inactive
     setTabValue(isActive ? 'history' : 'new-trip');
   }, [isActive]);
+
+  // Initial sync from backend userData
+  useEffect(() => {
+    (async () => {
+      try {
+        const resp = await userDataService.getUserData();
+        if (resp.success && resp.data) {
+          if (typeof resp.data.data.currentOdometer === 'number') {
+            updateOdometer(resp.data.data.currentOdometer.toString());
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to sync userData odometer:', e);
+      }
+    })();
+  }, []);
 
   const updateOdometer = (value: string) => {
     setCurrentOdometer(value);

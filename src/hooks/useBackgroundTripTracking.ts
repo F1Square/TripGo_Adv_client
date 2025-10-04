@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { evaluateIOSPermissionState, escalateToAlwaysWithUX } from '../native/iosPermissionHelper';
 import { startBackgroundTracking, stopBackgroundTracking, requestLocationPermissions, BgLocation } from '../native/backgroundLocation';
 import tripService, { TripPoint } from '../services/tripService';
 
@@ -93,11 +94,13 @@ export function useBackgroundTripTracking(tripId: string | null) {
     };
   }, [state.active, flushQueue]);
 
-  // Flush when returning to foreground
+  // Flush when returning to foreground (and attempt flush when hiding)
   useEffect(() => {
     if (!FLUSH_ON_FOREGROUND) return;
     const handler = () => {
       if (document.visibilityState === 'visible' && navigator.onLine) {
+        flushQueue();
+      } else if (document.visibilityState === 'hidden' && navigator.onLine) {
         flushQueue();
       }
     };
@@ -126,6 +129,15 @@ export function useBackgroundTripTracking(tripId: string | null) {
         if (queueRef.current.length >= FLUSH_POINT_THRESHOLD && navigator.onLine) flushQueue();
       }, { distanceFilter: 15 });
       setState(s => ({ ...s, active: true, error: null }));
+      // Auto-escalate iOS permission after 30s if still when-in-use
+      setTimeout(async () => {
+        try {
+          const advice = await evaluateIOSPermissionState();
+          if (advice.status === 'wheninuse' && advice.canRequestAlways) {
+            await escalateToAlwaysWithUX(async () => true);
+          }
+        } catch {/* ignore */}
+      }, 30000);
     } catch (e: any) {
       setState(s => ({ ...s, error: e?.message || 'Failed to start tracking' }));
     }

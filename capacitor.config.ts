@@ -14,14 +14,27 @@ const config: CapacitorConfig = {
     },
     // Placeholder for background geolocation plugin configuration
     BackgroundGeolocation: {
-      // Common config values; will be refined when plugin integrated
-      desiredAccuracy: 0, // Highest
-      distanceFilter: 25,
+      // Tuned configuration for continuous automotive trip tracking.
+      // desiredAccuracy 0 = highest (per plugin docs)
+      desiredAccuracy: 0,
+      // Lower distance filter to capture more granular movement without flooding (meters)
+      distanceFilter: 15,
+      // Keep tracking after app terminate / device reboot for long trips
       stopOnTerminate: false,
       startOnBoot: true,
+      // iOS specific: purpose classification optimizes chipset behavior for navigation
+      activityType: 'automotiveNavigation',
+      // Prevent iOS from pausing updates when it thinks user is stationary (we compute distance ourselves)
+      pauseLocationUpdates: false,
+      // Android foreground service notification
       notificationTitle: 'Trip tracking active',
       notificationBody: 'Collecting location for your trip',
-      stationaryRadius: 25
+      // Radius to consider device stationary (affects batching). Keep modest.
+      stationaryRadius: 20,
+      // How often (ms) to force a location update even if distanceFilter not hit (Android) - balance battery vs fidelity
+      locationUpdateInterval: 30000,
+      // Fastest interval Android will deliver (throttle floor)
+      fastestLocationUpdateInterval: 15000
     }
   }
 };

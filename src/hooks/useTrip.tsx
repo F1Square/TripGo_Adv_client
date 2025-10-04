@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useCallback, useContext, createContext } from 'react';
 import { useGeolocation } from './useGeolocation';
+import { useBackgroundTripTracking } from './useBackgroundTripTracking';
+import { Capacitor } from '@capacitor/core';
 import { tripService, Trip, TripPoint } from '../services/tripService';
+import { userDataService } from '../services/userDataService';
 import { preloadMapComponents } from '../utils/componentPreloader';
 import { throttle } from '../utils/performance';
 import { roundDistanceKm } from '@/lib/utils';
@@ -47,6 +50,8 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
   });
 
   const { position, startTracking, stopTracking, getCurrentPosition, error, backgroundSupport } = useGeolocation();
+  const isNative = Capacitor.getPlatform() !== 'web';
+  const bgTracking = useBackgroundTripTracking(state.currentTrip?._id || null);
   
   // Wake Lock API for keeping screen active during trips
   const [wakeLock, setWakeLock] = useState<WakeLockSentinel | null>(null);
@@ -127,7 +132,7 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Update current trip with new position data (save to MongoDB)
   useEffect(() => {
-    if (state.isActive && state.currentTrip && state.position) {
+    if (state.isActive && state.currentTrip && state.position && !isNative) {
       const newPoint: TripPoint = {
         latitude: state.position.latitude,
         longitude: state.position.longitude,
@@ -184,7 +189,36 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
       });
     }
-  }, [state.position, state.isActive, state.currentTrip]);
+  }, [state.position, state.isActive, state.currentTrip, isNative]);
+
+  // When background hook receives points (queue length changes / lastPoint), update in-memory distance estimate (native only)
+  useEffect(() => {
+    if (!isNative) return;
+    if (!state.isActive || !state.currentTrip) return;
+    if (!bgTracking.lastPoint) return;
+    setState(prev => {
+      if (!prev.currentTrip) return prev;
+      const last = prev.currentTrip.route[prev.currentTrip.route.length - 1];
+      const newPt: TripPoint = {
+        latitude: bgTracking.lastPoint!.latitude,
+        longitude: bgTracking.lastPoint!.longitude,
+        timestamp: bgTracking.lastPoint!.timestamp,
+        accuracy: bgTracking.lastPoint!.accuracy,
+      };
+      if (last && Math.abs(last.latitude - newPt.latitude) < 1e-7 && Math.abs(last.longitude - newPt.longitude) < 1e-7) {
+        return prev; // duplicate
+      }
+      const updatedRoute = [...prev.currentTrip.route, newPt];
+      const distance = calculateDistance(updatedRoute);
+      const startTime = prev.currentTrip.startTime || prev.currentTrip.createdAt;
+      const duration = Math.floor((Date.now() - new Date(startTime).getTime()) / 1000);
+      const averageSpeed = duration > 0 ? (distance / duration) * 3.6 : 0;
+      return {
+        ...prev,
+        currentTrip: { ...prev.currentTrip, route: updatedRoute, distance, duration, averageSpeed }
+      };
+    });
+  }, [bgTracking.lastPoint, isNative, state.isActive, state.currentTrip]);
 
   const startTrip = useCallback(async (purpose: string, startOdometer: number) => {
     try {
@@ -210,6 +244,13 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const newTrip = createResponse.data.data;
 
+      // Inform backend userData about active trip (defensive if server logic missed it)
+      try {
+        await userDataService.setActiveTrip(newTrip._id);
+      } catch (e) {
+        console.warn('Failed to sync activeTrip to userData:', e);
+      }
+
       setState(prev => ({
         ...prev,
         currentTrip: newTrip,
@@ -230,7 +271,12 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.warn('Failed to refresh trip history after starting trip:', error);
       }
 
-      startTracking();
+      if (isNative) {
+        // Start native background tracking instead of browser watch
+        bgTracking.start().catch(e => console.warn('Background tracking start failed:', e));
+      } else {
+        startTracking();
+      }
 
       // Preload map components for active trip
       preloadMapComponents();
@@ -291,7 +337,7 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const completedTrip = endResponse.data.data;
 
-      // Update local current odometer store and notify listeners
+      // Update local current odometer store and notify listeners + backend userData
       try {
         const base = Math.floor(completedTrip.distance || 0);
         const frac = (completedTrip.distance || 0) - base;
@@ -301,6 +347,9 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const newOdo = Math.max(prevOdo, completedTrip.startOdometer) + roundedDistance;
         localStorage.setItem('trip_tracker_odometer', newOdo.toString());
         window.dispatchEvent(new CustomEvent('odometer:updated', { detail: { value: newOdo } }));
+        // Persist to backend userData
+        userDataService.updateOdometer(newOdo).catch(err => console.warn('Failed to persist odometer to backend:', err));
+        userDataService.clearActiveTrip().catch(err => console.warn('Failed to clear activeTrip in backend:', err));
       } catch (e) {
         console.warn('Failed to update local odometer after trip end:', e);
       }
@@ -314,7 +363,11 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
         tripHistory: [completedTrip, ...prev.tripHistory],
       }));
 
-      stopTracking();
+      if (isNative) {
+        bgTracking.stop().catch(()=>{});
+      } else {
+        stopTracking();
+      }
 
       // Release wake lock when trip ends
       if (wakeLock) {

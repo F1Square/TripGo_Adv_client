@@ -5,11 +5,13 @@ import { Label } from '@/components/ui/label';
 import { CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { User, Mail, Settings, LogOut, Save } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useTrip } from '@/hooks/useTrip';
 import { useToast } from '@/hooks/use-toast';
 import { authService } from '@/services/authService';
 
 const UserProfile: React.FC = React.memo(() => {
   const { user, logout } = useAuth();
+  const { isActive } = useTrip();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [profileData, setProfileData] = useState({
@@ -65,6 +67,14 @@ const UserProfile: React.FC = React.memo(() => {
   };
 
   const handleLogout = () => {
+    if (isActive) {
+      toast({
+        title: "Active trip in progress",
+        description: "Please end the active trip before logging out.",
+        variant: "destructive",
+      });
+      return;
+    }
     logout();
     toast({
       title: "Logged out",
@@ -106,9 +116,11 @@ const UserProfile: React.FC = React.memo(() => {
               variant="destructive"
               onClick={handleLogout}
               className="flex items-center space-x-2"
+              disabled={isActive}
+              title={isActive ? 'End the current trip to logout' : undefined}
             >
               <LogOut className="w-4 h-4" />
-              <span>Logout</span>
+              <span>{isActive ? 'Logout (disabled during trip)' : 'Logout'}</span>
             </Button>
           </div>
         </div>

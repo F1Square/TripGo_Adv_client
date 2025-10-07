@@ -91,6 +91,14 @@ const Dashboard = () => {
   }, []);
 
   const handleLogout = () => {
+    if (isActive) {
+      toast({
+        title: 'Active trip in progress',
+        description: 'Please end the active trip before logging out.',
+        variant: 'destructive'
+      });
+      return;
+    }
     logout();
     toast({
       title: "Logged out",
@@ -133,9 +141,13 @@ const Dashboard = () => {
                     View Profile
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                  <DropdownMenuItem 
+                    onClick={handleLogout} 
+                    className={`text-red-600 ${isActive ? 'opacity-60 cursor-not-allowed' : ''}`}
+                    disabled={isActive}
+                  >
                     <LogOut className="w-4 h-4 mr-2" />
-                    Logout
+                    {isActive ? 'Logout Disabled (Active Trip)' : 'Logout'}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
